@@ -160,6 +160,16 @@ The Nexmon framework is already very mature. As I mentioned earlier, they've ful
 
 I only have two devices that truly support Nexmon: the Huawei P9 and the TicWatch Pro 3. Getting them both working has consumed nearly all of my spare time. So, I may not have enough energy to push this project further.
 
-Let it be.
+**Let it be.**
 
 If you actually make it, congratulations in advance—you will have created the world's third device with native Broadcom injection, and N5 and P9 will have a new friend.
+
+## Acknowledgements
+
+This project would not exist without:
+
+- **The Nexmon project** (SEEMOO Lab, TU Darmstadt) — for the original firmware patching framework and the 408 ioctl injection interface.
+  https://github.com/seemoo-lab/nexmon
+
+- **vvvbbbcz** — for adding Kali NetHunter support for the Huawei P9 and providing the upstream kernel source tree.
+  https://gitlab.com/vvvbbbcz/android_kernel_huawei_hi3650.git
