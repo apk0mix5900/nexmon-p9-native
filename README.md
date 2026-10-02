@@ -5,7 +5,7 @@ Native Nexmon kernel patches for Huawei P9 (EMUI 8) — lib-free monitor mode an
 
 ## 这是什么？
 
-**Nexmon** 是一个开源的 Wi-Fi 芯片固件研究项目，允许在**博通和赛普拉斯（Broadcom / Cypress）**的 FullMAC 芯片上实现监听模式和帧注入。
+**Nexmon** 是一个开源的 Wi-Fi 芯片固件研究项目，允许在 博通和赛普拉斯（Broadcom / Cypress）的 FullMAC 芯片上实现监听模式和帧注入。
 
 - 原项目地址：https://github.com/seemoo-lab/nexmon
 - Nexus 5 原生注入参考：https://github.com/seemoo-lab/bcm-public
