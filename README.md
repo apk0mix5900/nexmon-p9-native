@@ -18,7 +18,7 @@ This repository provides Nexmon native injection kernel patches for the Huawei P
 
 ---
 
-Important Announcement
+# Important Announcement
 
 10 years later, after the N5, the world's second device with near-native monitor support — the Huawei P9 — is officially born.
 
@@ -36,7 +36,7 @@ Both 2.4GHz and 5GHz injection have been verified.
 
 ---
 
-Repository Structure
+# Repository Structure
 
 1. Complete Broadcom driver (bcmdhd)
 
@@ -50,7 +50,7 @@ drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/
 
 ---
 
-Supported Devices
+# Supported Devices
 
 Device: Huawei P9 (EVA-L09 / EVA-L19 / EVA-AL00)
 
@@ -66,7 +66,7 @@ Firmware: Nexmon 7_46_77_11_hw
 
 ---
 
-Feature Status
+# Feature Status
 
 ✅ Native monitor mode (no libnexmon.so) 
 
@@ -79,9 +79,9 @@ Feature Status
 
 ---
 
-Porting Notes and Experience
+# Porting Notes and Experience
 
-1. The Core Misconception: Why use libnexmon?
+***1. The Core Misconception: Why use libnexmon?***
 
 When porting Nexmon native injection to a new device, there is a very common misconception: that the Nexmon team used libnexmon.so merely for convenience, unification, or modularity.
 
@@ -91,7 +91,7 @@ The root reason libnexmon.so exists is kernel limitations. If you try to execute
 
 I initially thought my project and kernel patch were more of a "gimmick." It is highly unlikely that a third device with native support will ever appear, unless someone can create a universal Nexmon framework patch based on the patches of these two devices (N5 & P9). I was just lucky, like a blind cat stumbling upon a dead mouse.
 
-2. Differences between N5 and P9 Patches
+***2. Differences between N5 and P9 Patches***
 
 If you carefully browse the original (now deprecated) Nexmon repository, you can find two kernel patches for the N5: one for 5GHz injection and one for standard injection logic. You will notice that the N5 patch is around 500–600 lines, while the P9 patch is very short.
 
@@ -101,7 +101,7 @@ Back in the N5 era, when Nexmon first added monitor support, the firmware did no
 
 The P9's BCM43455 chip, however, benefits directly from this mature technology. The firmware layer already includes a dedicated interface for injection (e.g., the 408 ioctl), so the kernel layer only needs to safely deliver the Radiotap packet from the network card header to the firmware via a workqueue.
 
-3. The Three Core Tasks of libnexmon
+***3. The Three Core Tasks of libnexmon***
 
 For the issue of "scanning works but injection fails," libnexmon performs three main tasks:
 
@@ -111,7 +111,7 @@ For the issue of "scanning works but injection fails," libnexmon performs three 
 
 Generally, injection requires this "permission header." If your injection fails, this is almost certainly why. You just need to add the relevant logic in the kernel (for reference, see the Huawei P9 Nexmon C framework; other devices vary).
 
-4. If You Insist on Trying: Prerequisites and Phases
+***4. If You Insist on Trying: Prerequisites and Phases***
 
 Prerequisites:
 
@@ -125,27 +125,27 @@ Phases you will go through:
 2. Injection works, but tools show 100% packet loss: This is a very strange phenomenon. aireplay-ng reports 100% packet loss, but the target device is indeed kicked offline. (I did not fully resolve the tool-level misreporting, but the kernel definitely sends injection frames. Test the actual target effect when you succeed.)
 3. Kernel panic trap: You must avoid calling forbidden functions in a FullMAC driver. Calling sleeping functions in a softirq context will directly cause the device to freeze or reboot.
 
-5. Final Warning: lib is King
+***5. Final Warning: lib is King***
 
 I strongly advise against attempting to create the world's third device with native Broadcom injection. Honestly, I feel that's just asking for trouble.
 
 If you are an individual developer without funding or lab support, researching a universal Nexmon native monitor framework patch is far more valuable than chasing a third native device.
 
+**A bit of lighthearted context before the serious note**
+
 I know it's unusual to quote Chinese memes here, but there's a popular one from around 2026
 
-A bit of lighthearted context before the serious note:
+*像素方块的硬核才是王道，你的卡通画风根本没技巧。*
 
-像素方块的硬核才是王道，你的卡通画风根本没技巧
-
-萌趣的世界才受大众喜爱，你的硬核玩法早就被时代落败
+*萌趣的世界才受大众喜爱，你的硬核玩法早就被时代落败。*
 
 (Translation: "Hardcore pixel blocks are the true way; your cartoon style has no skill. The cute world is loved by the masses; your hardcore gameplay is already outdated.")
 
 Translating this to our project:
 
-外挂库进行劫持的能力才是王道，你的原生监听内核补丁根本没技巧。
+*外挂库进行劫持的能力才是王道，你的原生监听内核补丁根本没技巧。*
 
-原生监听网卡说句实话，就是出力不讨好，或者也讨不到多少好。
+*原生监听网卡说句实话，就是出力不讨好，或者也讨不到多少好。*
 
 (Translation: "The ability to hook with a userspace library is the true way; your native kernel monitor patch has no skill. Native monitor on a Broadcom card, honestly, is a thankless job — it doesn't even earn you much credit.")
 
