@@ -1,5 +1,7 @@
 # upstream — Pristine bcmdhd driver for Huawei P9
 
+![image](png/p9.png)
+
 Unmodified Broadcom BCM43455 `bcmdhd` Wi-Fi driver as shipped in the
 Huawei P9 kernel source tree. **No patches, no modifications.**
 
