@@ -85,7 +85,7 @@ Firmware: Nexmon 7_46_77_11_hw
 
 When porting Nexmon native injection to a new device, there is a very common misconception: that the Nexmon team used libnexmon.so merely for convenience, unification, or modularity.
 
-This is completely wrong.
+**This is completely wrong.**
 
 The root reason libnexmon.so exists is kernel limitations. If you try to execute certain sleeping functions directly in the softirq context of a FullMAC driver (like dhd_start_xmit), such as dhd_wl_ioctl, your phone will inevitably experience a complete freeze or soft reboot. This was the biggest pitfall I encountered during porting.
 
