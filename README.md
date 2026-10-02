@@ -70,10 +70,10 @@ Firmware Nexmon 7_46_77_11_hw
 Feature Status
 
 Feature Status
-Native monitor mode (no libnexmon.so) ✅ Verified
-2.4GHz injection ✅ Verified
-5GHz injection ✅ Verified
-Deauth attack (kick offline) ✅ Verified
+Native monitor mode (no libnexmon.so) ✅
+2.4GHz injection ✅ 
+5GHz injection ✅ 
+Deauth attack (kick offline) ✅ 
 
 ---
 
