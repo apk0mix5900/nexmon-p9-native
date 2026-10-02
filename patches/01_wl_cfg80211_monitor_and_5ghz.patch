@@ -1,0 +1,175 @@
+# Nexmon P9 native injection - 01_wl_cfg80211_monitor_and_5ghz
+# Base: vvvbbbcz/android_kernel_huawei_hi3650 upstream (GPL-2.0)
+# Target: 4.4.53-MON-NH-Ultra-apk0mix5900
+# Apply from kernel root: patch -p1 < 01_wl_cfg80211_monitor_and_5ghz.patch
+
+--- a/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/wl_cfg80211.c
++++ b/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/wl_cfg80211.c
+@@ -1551,6 +1551,10 @@
+ 		.tx = 0xffff,
+ 		.rx = BIT(IEEE80211_STYPE_ACTION >> 4)
+ 	},
++	[NL80211_IFTYPE_MONITOR] = {
++		.tx = 0xffff,
++		.rx = 0xffff
++	},
+ 	[NL80211_IFTYPE_STATION] = {
+ 		.tx = 0xffff,
+ 		.rx = BIT(IEEE80211_STYPE_ACTION >> 4) |
+@@ -1853,16 +1857,11 @@
+ static bcm_struct_cfgdev *
+ wl_cfg80211_add_monitor_if(char *name)
+ {
+-#if defined(WL_ENABLE_P2P_IF) || defined(WL_CFG80211_P2P_DEV_IF)
+-	WL_INFORM(("wl_cfg80211_add_monitor_if: No more support monitor interface\n"));
+-	return ERR_PTR(-EOPNOTSUPP);
+-#else
+ 	struct net_device* ndev = NULL;
+ 
+ 	dhd_add_monitor(name, &ndev);
+ 	WL_INFORM(("wl_cfg80211_add_monitor_if net device returned: 0x%p\n", ndev));
+ 	return ndev_to_cfgdev(ndev);
+-#endif /* WL_ENABLE_P2P_IF || WL_CFG80211_P2P_DEV_IF */
+ }
+ 
+ static bcm_struct_cfgdev *
+@@ -2591,6 +2590,8 @@
+ 	s32 ap = 0;
+ 	s32 infra = 0;
+ 	s32 ibss = 0;
++	s32 mon = 0;
++	s32 promisc = 0;
+ 	s32 wlif_type;
+ 	s32 mode = 0;
+ 	s32 err = BCME_OK;
+@@ -2608,6 +2609,10 @@
+ 	WL_DBG(("Enter type %d\n", type));
+ 	switch (type) {
+ 	case NL80211_IFTYPE_MONITOR:
++		mode = WL_MODE_MONITOR;
++		mon = 2;
++		promisc = 1;
++		break;
+ 	case NL80211_IFTYPE_WDS:
+ 	case NL80211_IFTYPE_MESH_POINT:
+ 		ap = 1;
+@@ -2762,6 +2767,19 @@
+ 		}
+ 	}
+ 
++	if (mon) {
++		ndev->type = ARPHRD_IEEE80211_RADIOTAP;
++	} else {
++		ndev->type = ARPHRD_ETHER;
++	}
++
++	if (!ap) {
++		wldev_ioctl(ndev, WLC_SET_INFRA, &infra, sizeof(s32), true);
++		wldev_ioctl(ndev, WLC_SET_PROMISC, &promisc, sizeof(s32), true);
++		wldev_ioctl(ndev, WLC_SET_MONITOR, &mon, sizeof(s32), true);
++		wl_set_mode_by_netdev(cfg, ndev, mode);
++	}
++
+ 	ndev->ieee80211_ptr->iftype = type;
+ 	return 0;
+ }
+@@ -9558,6 +9576,19 @@
+ 	return 0;
+ }
+ 
++static s32 wl_cfg80211_set_channel(struct wiphy *wiphy, struct net_device *dev,
++        struct ieee80211_channel *chan,
++        enum nl80211_channel_type channel_type);
++
++static s32 wl_cfg80211_set_monitor_channel(struct wiphy *wiphy, struct cfg80211_chan_def *chandef)
++{
++        struct bcm_cfg80211 *cfg = wiphy_priv(wiphy);
++        struct net_device *dev = bcmcfg_to_prmry_ndev(cfg);
++        enum nl80211_channel_type channel_type = cfg80211_get_chandef_type(chandef);
++
++        return(wl_cfg80211_set_channel(wiphy, dev, chandef->chan, channel_type));
++}
++
+ static s32
+ wl_cfg80211_set_channel(struct wiphy *wiphy, struct net_device *dev,
+ 	struct ieee80211_channel *chan,
+@@ -9646,6 +9677,8 @@
+ 	} else if (chan->band == IEEE80211_BAND_2GHZ)
+ 		bw = WL_CHANSPEC_BW_20;
+ set_channel:
++        if (chan->band == IEEE80211_BAND_5GHZ)
++                bw = WL_CHANSPEC_BW_40;  /* NexMon: 5GHz only */
+ #ifdef HW_SOFTAP_HT40
+         channel = _chan;
+         WL_ERR(("softap support 40MHz & 20MHz, channel:%d\n", channel));
+@@ -12780,6 +12813,7 @@
+ 	.mgmt_tx = wl_cfg80211_mgmt_tx,
+ 	.mgmt_frame_register = wl_cfg80211_mgmt_frame_register,
+ 	.change_bss = wl_cfg80211_change_bss,
++	.set_monitor_channel = wl_cfg80211_set_monitor_channel,
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 6, 0)) || defined(WL_COMPAT_WIRELESS)
+ 	.set_channel = wl_cfg80211_set_channel,
+ #endif /* ((LINUX_VERSION < VERSION(3, 6, 0)) || WL_COMPAT_WIRELESS */
+@@ -12829,6 +12863,8 @@
+ 		return NL80211_IFTYPE_ADHOC;
+ 	case WL_MODE_AP:
+ 		return NL80211_IFTYPE_AP;
++	case WL_MODE_MONITOR:
++		return NL80211_IFTYPE_MONITOR;
+ 	default:
+ 		return NL80211_IFTYPE_UNSPECIFIED;
+ 	}
+@@ -12929,9 +12965,7 @@
+ 	wdev->wiphy->interface_modes =
+ 		BIT(NL80211_IFTYPE_STATION)
+ 		| BIT(NL80211_IFTYPE_ADHOC)
+-#if !defined(WL_ENABLE_P2P_IF) && !defined(WL_CFG80211_P2P_DEV_IF)
+ 		| BIT(NL80211_IFTYPE_MONITOR)
+-#endif /* !WL_ENABLE_P2P_IF && !WL_CFG80211_P2P_DEV_IF */
+ #if defined(WL_IFACE_COMB_NUM_CHANNELS) || defined(WL_CFG80211_P2P_DEV_IF)
+ 		| BIT(NL80211_IFTYPE_P2P_CLIENT)
+ 		| BIT(NL80211_IFTYPE_P2P_GO)
+@@ -19354,8 +19388,14 @@
+ 	s32 infra = 0;
+ 	s32 err = 0;
+ 	s32 mode = 0;
++	s32 mon = 0;
++	s32 promisc = 0;
+ 	switch (iftype) {
+ 	case NL80211_IFTYPE_MONITOR:
++		mode = WL_MODE_MONITOR;
++		mon = 2;
++		promisc = 1;
++		break;
+ 	case NL80211_IFTYPE_WDS:
+ 		WL_ERR(("type (%d) : currently we do not support this mode\n",
+ 			iftype));
+@@ -19380,11 +19420,28 @@
+ 		return err;
+ 	}
+ 	infra = htod32(infra);
++	mon = htod32(mon);
++	promisc = htod32(promisc);
+ 	err = wldev_ioctl(ndev, WLC_SET_INFRA, &infra, sizeof(infra), true);
+ 	if (unlikely(err)) {
+ 		WL_ERR(("WLC_SET_INFRA error (%d)\n", err));
+ 		return err;
+ 	}
++	err = wldev_ioctl(ndev, WLC_SET_PROMISC, &promisc, sizeof(s32), true);
++	if (unlikely(err)) {
++		WL_ERR(("WLC_SET_PROMISC error (%d)\n", err));
++		return err;
++	}
++	err = wldev_ioctl(ndev, WLC_SET_MONITOR, &mon, sizeof(mon), true);
++	if (unlikely(err)) {
++		WL_ERR(("WLC_SET_MONITOR error (%d)\n", err));
++		return err;
++	}
++	if (mon) {
++		ndev->type = ARPHRD_IEEE80211_RADIOTAP;
++	} else {
++		ndev->type = ARPHRD_ETHER;
++	}
+ 
+ 	wl_set_mode_by_netdev(cfg, ndev, mode);
+ 

@@ -1,0 +1,17 @@
+# Nexmon P9 native injection - 02_wl_cfg80211_h_mode
+# Base: vvvbbbcz/android_kernel_huawei_hi3650 upstream (GPL-2.0)
+# Target: 4.4.53-MON-NH-Ultra-apk0mix5900
+# Apply from kernel root: patch -p1 < 02_wl_cfg80211_h_mode.patch
+
+--- a/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/wl_cfg80211.h
++++ b/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/wl_cfg80211.h
+@@ -260,7 +260,8 @@
+ enum wl_mode {
+ 	WL_MODE_BSS,
+ 	WL_MODE_IBSS,
+-	WL_MODE_AP
++	WL_MODE_AP,
++	WL_MODE_MONITOR
+ };
+ 
+ /* driver profile list */

@@ -1,0 +1,124 @@
+# Nexmon P9 native injection - 03_dhd_linux_inject_workqueue
+# Base: vvvbbbcz/android_kernel_huawei_hi3650 upstream (GPL-2.0)
+# Target: 4.4.53-MON-NH-Ultra-apk0mix5900
+# Apply from kernel root: patch -p1 < 03_dhd_linux_inject_workqueue.patch
+
+--- a/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/dhd_linux.c
++++ b/drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/dhd_linux.c
+@@ -98,6 +98,16 @@
+ #endif
+ #ifdef WL_CFG80211
+ #include <wl_cfg80211.h>
++
++/* NexMon injection support */
++#define NEX_INJECT_FRAME 408
++
++struct nexmon_inject_frame {
++        unsigned short len;
++        unsigned char pad;
++        unsigned char type;
++        char data[];
++};
+ #endif
+ #ifdef PNO_SUPPORT
+ #include <dhd_pno.h>
+@@ -3119,6 +3129,86 @@
+ 	return ret;
+ }
+ 
++/* NexMon injection workqueue */
++struct nexmon_inject_work {
++        struct work_struct work;
++        struct sk_buff *skb;
++        dhd_info_t *dhd;
++        int ifidx;
++};
++
++static void
++nexmon_inject_worker(struct work_struct *work)
++{
++        struct nexmon_inject_work *nw =
++                container_of(work, struct nexmon_inject_work, work);
++        struct nexmon_inject_frame *frm;
++        wl_ioctl_t ioc;
++        int frame_len, total_len, ret;
++
++        frame_len = nw->skb->len;
++        total_len = sizeof(struct nexmon_inject_frame) + frame_len;
++
++        frm = (struct nexmon_inject_frame *) kmalloc(total_len, GFP_KERNEL);
++        if (!frm) {
++                DHD_ERROR(("NexMon: worker kmalloc failed\n"));
++                goto out;
++        }
++
++        frm->len = (unsigned short)total_len;
++        frm->pad = 0;
++        frm->type = 1;
++        memcpy(frm->data, nw->skb->data, frame_len);
++
++        memset(&ioc, 0, sizeof(ioc));
++        ioc.cmd = NEX_INJECT_FRAME;
++        ioc.buf = (char *)frm;
++        ioc.len = total_len;
++        ioc.set = 1;
++
++        DHD_OS_WAKE_LOCK(&nw->dhd->pub);
++        ret = dhd_wl_ioctl(&nw->dhd->pub, nw->ifidx, &ioc, ioc.buf, ioc.len);
++        DHD_OS_WAKE_UNLOCK(&nw->dhd->pub);
++
++        DHD_ERROR(("NexMon: injected frame_len=%d ret=%d\n", frame_len, ret));
++
++        kfree(frm);
++out:
++        dev_kfree_skb_any(nw->skb);
++        kfree(nw);
++}
++
++static int
++nexmon_inject_frame(struct sk_buff *skb, struct net_device *net)
++{
++        struct nexmon_inject_work *nw;
++        dhd_info_t *dhd = DHD_DEV_INFO(net);
++        int ifidx;
++
++        ifidx = dhd_net2idx(dhd, net);
++        if (ifidx == DHD_BAD_IF) {
++                DHD_ERROR(("NexMon: bad ifidx\n"));
++                dev_kfree_skb_any(skb);
++                return NETDEV_TX_OK;
++        }
++
++        nw = (struct nexmon_inject_work *) kmalloc(sizeof(*nw), GFP_ATOMIC);
++        if (!nw) {
++                DHD_ERROR(("NexMon: work alloc failed\n"));
++                dev_kfree_skb_any(skb);
++                return NETDEV_TX_OK;
++        }
++
++        nw->skb = skb;
++        nw->dhd = dhd;
++        nw->ifidx = ifidx;
++        INIT_WORK(&nw->work, nexmon_inject_worker);
++        schedule_work(&nw->work);
++
++        return NETDEV_TX_OK;
++}
++
++
+ int BCMFASTPATH
+ dhd_start_xmit(struct sk_buff *skb, struct net_device *net)
+ {
+@@ -3144,6 +3234,12 @@
+ 	struct sock *sk;
+ #endif
+ 	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
++
++        /* NexMon: monitor 模式走原生注入 */
++        if (net->ieee80211_ptr &&
++            net->ieee80211_ptr->iftype == NL80211_IFTYPE_MONITOR) {
++                return nexmon_inject_frame(skb, net);
++        }
+ #ifdef PCIE_FULL_DONGLE
+ 	if (dhd->pub.busstate == DHD_BUS_SUSPEND) {
+ 		DHD_GENERAL_LOCK(&dhd->pub, flags);
