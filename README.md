@@ -128,6 +128,7 @@ If you are an individual developer without funding or lab support, researching a
 I know it's unusual to quote Chinese memes here, but there's a popular one from around 2026:
 
 像素方块的硬核才是王道，你的卡通画风根本没技巧
+
 萌趣的世界才受大众喜爱，你的硬核玩法早就被时代落败
 
 (Translation: "Hardcore pixel blocks are the true way; your cartoon style has no skill. The cute world is loved by the masses; your hardcore gameplay is already outdated.")
@@ -135,6 +136,7 @@ I know it's unusual to quote Chinese memes here, but there's a popular one from 
 Translating this to our project:
 
 外挂库进行劫持的能力才是王道，你的原生监听内核补丁根本没技巧。
+
 原生监听网卡说句实话，就是出力不讨好，或者也讨不到多少好。
 
 (Translation: "The ability to hook with a userspace library is the true way; your native kernel monitor patch has no skill. Native monitor on a Broadcom card, honestly, is a thankless job — it doesn't even earn you much credit.")
