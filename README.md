@@ -1,9 +1,7 @@
 # nexmon-p9-native
 Native Nexmon kernel patches for Huawei P9 (EMUI 8) — lib-free monitor mode and Wi-Fi injection.
 
-nexmon-p9-native
-
-What is this?
+# What is this?
 
 Nexmon is an open-source Wi-Fi chip firmware research project that enables monitor mode and frame injection on Broadcom / Cypress FullMAC chips.
 
