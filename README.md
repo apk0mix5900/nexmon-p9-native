@@ -1,3 +1,9 @@
+![Device](https://img.shields.io/badge/device-Huawei%20P9-blue)
+![Chip](https://img.shields.io/badge/chip-BCM43455-blueviolet)
+![Target](https://img.shields.io/badge/target-kernel%204.4.53-green)
+![Type](https://img.shields.io/badge/type-lib--free-orange)
+![License](https://img.shields.io/badge/license-GPL--2.0-lightgrey)
+
 # nexmon-p9-native
 
 ![image](png/p9.png)
