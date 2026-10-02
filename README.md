@@ -124,8 +124,7 @@ Phases you will go through:
 1. Scanning and interception work, injection fails: The driver can enter monitor mode, but packets cannot be injected.
 2. Injection works, but tools show 100% packet loss: This is a very strange phenomenon. aireplay-ng reports 100% packet loss, but the target device is indeed kicked offline. (I did not fully resolve the tool-level misreporting, but the kernel definitely sends injection frames. Test the actual target effect when you succeed.)
 3. Kernel panic trap: You must avoid calling forbidden functions in a FullMAC driver. Calling sleeping functions in a softirq context will directly cause the device to freeze or reboot.
-
-***5. Final Warning: lib is King***
+# Final Warning: lib is King
 
 I strongly advise against attempting to create the world's third device with native Broadcom injection. Honestly, I feel that's just asking for trouble.
 
