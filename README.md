@@ -130,7 +130,9 @@ I strongly advise against attempting to create the world's third device with nat
 
 If you are an individual developer without funding or lab support, researching a universal Nexmon native monitor framework patch is far more valuable than chasing a third native device.
 
-I know it's unusual to quote Chinese memes here, but there's a popular one from around 2026:
+I know it's unusual to quote Chinese memes here, but there's a popular one from around 2026
+
+A bit of lighthearted context before the serious note:
 
 像素方块的硬核才是王道，你的卡通画风根本没技巧
 
