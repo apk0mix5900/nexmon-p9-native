@@ -56,20 +56,6 @@ Both 2.4GHz and 5GHz injection have been verified.
 
 ---
 
-# Repository Structure
-
-1. Complete Broadcom driver (bcmdhd)
-
-You can directly replace the original Broadcom driver in your kernel source with this one. Just clone it into the corresponding directory.
-
-Target path:
-
-```
-drivers/huawei_platform/connectivity/bcm/wifi/driver/bcmdhd/
-```
-
----
-
 # Supported Devices
 
 Device: Huawei P9 (EVA-L09 / EVA-L19 / EVA-AL00)
