@@ -64,7 +64,7 @@ Both 2.4GHz and 5GHz injection have been verified.
 
 # Supported Devices
 
-Device: Huawei P9 (EVA-L09 / EVA-L19 / EVA-AL00)
+Device: Huawei P9 (EVA-AL00/EVA-AL10/EVA-TL00/EVA-CL00/EVA-DL00/EVA-L09/EVA-L19/EVA-L29)
 
 SoC: Kirin 955
 
